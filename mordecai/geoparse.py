@@ -7,7 +7,8 @@ import pkg_resources
 import spacy
 from . import utilities
 from multiprocessing.pool import ThreadPool
-from elasticsearch.exceptions import ConnectionTimeout, ConnectionError
+from elasticsearch_dsl import Search
+from elasticsearch.exceptions import ConnectionTimeout
 import multiprocessing
 from tqdm import tqdm
 import warnings
@@ -30,8 +31,7 @@ Install with this command: `python -m spacy download en_core_web_lg`.""")
 
 
 class Geoparser:
-    def __init__(self, es_hosts=None, es_port=None, es_ssl=False, es_auth=None,
-                 verbose=False, country_threshold=0.6, threads=True,
+    def __init__(self, es_client, verbose=False, country_threshold=0.6, threads=True,
                  progress=True, mod_date="2018-06-05", **kwargs):
         DATA_PATH = pkg_resources.resource_filename('mordecai', 'data/')
         MODELS_PATH = pkg_resources.resource_filename('mordecai', 'models/')
@@ -44,7 +44,7 @@ class Geoparser:
         self._prebuilt_vec = [w.vector for w in self._ct_nlp]
         self._both_codes = utilities.make_country_nationality_list(self._cts, DATA_PATH + "nat_df.csv")
         self._admin1_dict = utilities.read_in_admin1(DATA_PATH + "admin1CodesASCII.json")
-        self.conn = utilities.setup_es(es_hosts, es_port, es_ssl, es_auth)
+        self.conn = Search(using=es_client, index="geonames")
         self.country_model = keras.models.load_model(MODELS_PATH + "country_model.h5")
         self.country_model._make_predict_function()
         self.rank_model = keras.models.load_model(MODELS_PATH + "rank_model.h5")
@@ -60,16 +60,7 @@ class Geoparser:
         self.threads = threads
         if 'n_threads' in kwargs.keys():
             warnings.warn("n_threads is deprecated. Use threads=True instead.", DeprecationWarning)
-        try:
-            # https://www.reddit.com/r/Python/comments/3a2erd/exception_catch_not_catching_everything/
-            # with nostderr():
-            self.conn.count()
-        except:
-            raise ConnectionError("""Could not establish contact with Elasticsearch at {0} on port {1}.
-Are you sure it's running?
-Mordecai needs access to the Geonames/Elasticsearch gazetteer to function.
-See https://github.com/openeventdata/mordecai#installation-and-requirements
-for instructions on setting up Geonames/Elasticsearch""".format(es_hosts, es_port))
+
         es_date = utilities.check_geonames_date(self.conn)
         if es_date != mod_date:
             print("""You may be using an outdated Geonames index.

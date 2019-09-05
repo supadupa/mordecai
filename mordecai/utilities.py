@@ -6,8 +6,7 @@ import sys
 import json
 import numpy
 import pandas as pd
-from elasticsearch_dsl import Search, Q
-from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Q
 
 import spacy
 
@@ -230,35 +229,6 @@ def structure_results(res):
         out['hits']['hits'].append(i_out)
     return out
 
-def setup_es(hosts, port, use_ssl=False, auth=None):
-    """
-    Setup an Elasticsearch connection
-
-    Parameters
-    ----------
-    hosts: list
-            Hostnames / IP addresses for elasticsearch cluster
-    port: string
-            Port for elasticsearch cluster
-    use_ssl: boolean
-            Whether to use SSL for the elasticsearch connection
-    auth: tuple
-            (username, password) to use with HTTP auth
-    Returns
-    -------
-    es_conn: an elasticsearch_dsl Search connection object.
-    """
-    kwargs = dict(
-        hosts=hosts or ['localhost'],
-        port=port or 9200,
-        use_ssl=use_ssl,
-    )
-    if auth:
-        kwargs.update(http_auth=auth)
-
-    CLIENT = Elasticsearch(**kwargs)
-    S = Search(using=CLIENT, index="geonames")
-    return S
 
 def check_geonames_date(conn):
     r = Q("match", geonameid='4943351')

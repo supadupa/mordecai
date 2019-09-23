@@ -36,9 +36,7 @@ class Geoparser:
         self._admin1_dict = utilities.read_in_admin1(DATA_PATH + "admin1CodesASCII.json")
         self.conn = Search(using=es_client, index="geonames")
         self.country_model = keras.models.load_model(MODELS_PATH + "country_model.h5")
-        self.country_model._make_predict_function()
         self.rank_model = keras.models.load_model(MODELS_PATH + "rank_model.h5")
-        self.rank_model._make_predict_function()
         self._skip_list = utilities.make_skip_list(self._cts)
         self.training_setting = False  # make this true if you want training formatted
         # if the best country guess is below the country threshold, don't return anything at all

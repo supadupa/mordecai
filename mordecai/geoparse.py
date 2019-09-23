@@ -4,7 +4,6 @@ import numpy as np
 from collections import Counter
 import editdistance
 import pkg_resources
-import spacy
 from . import utilities
 from multiprocessing.pool import ThreadPool
 from elasticsearch_dsl import Search
@@ -12,22 +11,13 @@ from elasticsearch.exceptions import ConnectionTimeout
 import multiprocessing
 from tqdm import tqdm
 import warnings
+from .utilities import nlp
 
 try:
     from functools import lru_cache
 except ImportError:
     from backports.functools_lru_cache import lru_cache
     print("Mordecai requires Python 3 and seems to be running in Python 2.")
-
-try:
-    nlp
-except NameError:
-    try:
-        nlp = spacy.load('en_core_web_lg', disable=['parser', 'tagger'])
-        #nlp = spacy.load('en_core_web_lg', disable=['tagger'])
-    except OSError:
-        print("""ERROR: No spaCy NLP model installed.
-Install with this command: `python -m spacy download en_core_web_lg`.""")
 
 
 class Geoparser:

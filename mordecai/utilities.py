@@ -2,18 +2,16 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 import os
-import sys
 import json
-import numpy
 import pandas as pd
 from elasticsearch_dsl import Q
 
 import spacy
 
-try:
-    nlp
-except NameError:
-    nlp = spacy.load('en_core_web_lg')
+# Set the env var if you want to load the spaCy model from a different location
+NLP_PACKAGE = os.getenv('MORDECAI_SPACY_MODEL', 'en_core_web_lg')
+
+nlp = spacy.load(NLP_PACKAGE, disable=['parser', 'tagger'])
 
 
 def country_list_maker():
